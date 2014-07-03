@@ -9,6 +9,8 @@ class SoundFile():
   dub_window = 20
   callback_interval = 0.05
 
+  is_playing = False
+
   def on_playmore(self, rms):
     raise NotImplementedError
 

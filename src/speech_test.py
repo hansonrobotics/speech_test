@@ -46,6 +46,8 @@ class ApplyJaw:
 
   def handle_face_in(self, msg):
     self.facepau = msg
+    if not self.soundfile or not self.soundfile.is_playing:
+      self.pub.publish(msg)
 
   def __init__(self):
     self.facepau = fsMsgTrackingState()
