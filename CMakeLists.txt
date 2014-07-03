@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(einstein_tts_test)
+project(speech_test)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
