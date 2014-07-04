@@ -20,7 +20,7 @@ class ApplyJaw:
   and send the modified message to pau2motors.
   """
 
-  rms_params = {"scale": 1.0/1500, "min": 0.3, "max": 0.7}
+  rms_params = {"scale": 1.0/4000, "min": 0.0, "max": 1.0}
 
   soundfile = None
 
