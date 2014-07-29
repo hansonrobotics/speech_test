@@ -1,5 +1,0 @@
-<launch>
-  <remap from="make_face_expr" to="bridge/make_face_expr"/>
-  <remap from="point_head" to="bridge/point_head"/>
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
-</launch>

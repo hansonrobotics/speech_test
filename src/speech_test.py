@@ -25,9 +25,19 @@ class ApplyJaw:
   soundfile = None
 
   def hit(self, rms):
+    """
+    Publishes the current jaw-modified expression, given rms (root mean squared),
+    the volume or the power of a small segment in the file.
+    """
+
+    # Map the power number to the jaw coefficient.
+    # Note that coefficient can't effectively go below 0 or over 1.
+    # It will be cut to this range at the receiving end (pau2motors node)
     p = self.rms_params
     jaw_coeff = min(max(math.sqrt(rms * p["scale"]), p["min"]), p["max"])
 
+    # Copy pau expression message stored during handle_face_in(),
+    # modify jaw and publish.
     cmd = copy.deepcopy(self.facepau)
     coeffs = list(cmd.m_coeffs)
     coeffs[ShapekeyStore.getIndex("JawOpen")] = jaw_coeff
@@ -41,17 +51,23 @@ class ApplyJaw:
   def play(self, filename):
     self.stop()
     self.soundfile = SoundFile(filename)
-    self.soundfile.on_playmore = self.hit
+    self.soundfile.on_playmore = self.hit # Set callback
     self.soundfile.play()
 
   def handle_face_in(self, msg):
+    # Save expression message for later transmission and modification.
     self.facepau = msg
+
+    # If no sound file is playing, pass the message unmodified
     if not self.soundfile or not self.soundfile.is_playing:
       self.pub.publish(msg)
 
   def __init__(self):
-    self.facepau = pau
+    self.facepau = pau()
+
+    #Face expression pau message comes in.
     rospy.Subscriber("speechtest_face_in", pau, self.handle_face_in)
+    #Modified jaw position pau message comes out.
     self.pub = rospy.Publisher("cmd_face_pau", pau, queue_size=10)
 
 class SpeechTest:
@@ -59,31 +75,16 @@ class SpeechTest:
   def handle_cmd_speak(self, msg):
     self.applyjaw.play(msg.data)
 
-  def handle_face_in(self, msg):
-    jaw_coeff = time.time() % 2
-    if jaw_coeff > 1:
-      jaw_coeff = 2 - jaw_coeff
-
-    coeffs = list(msg.m_coeffs)
-    coeffs[ShapekeyStore.getIndex("JawOpen")] = jaw_coeff
-    msg.m_coeffs = coeffs
-    self.pub_face_pau.publish(msg)
-
-  @staticmethod
-  def call_service(servicename):
-    rospy.wait_for_service(servicename)
-    try:
-        return rospy.ServiceProxy(servicename, ValidFaceExprs)()
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
-
   def __init__(self):
     rospy.init_node("speech_test")
 
     self.applyjaw = ApplyJaw()
+
+    #Listens to filenames to play, if it can be found in the 'res' folder
     rospy.Subscriber("cmd_speak", String, self.handle_cmd_speak)
 
-    #Fix to get the pyglet in background thread exit gracefully
+    #Fix to get the pyglet in background thread exit gracefully on keyboard
+    #interrupt (CTRL+C)
     pyglet.clock._get_sleep_time = pyglet.clock.get_sleep_time
     pyglet.clock.get_sleep_time = lambda sleep_idle: pyglet.clock._get_sleep_time(False)
 
