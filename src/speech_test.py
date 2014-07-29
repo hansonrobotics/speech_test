@@ -3,7 +3,7 @@ import rospy
 from basic_head_api.srv import ValidFaceExprs
 from basic_head_api.msg import MakeFaceExpr, PointHead
 from std_msgs.msg import String
-from pau2motors.msg import fsMsgTrackingState
+from pau2motors.msg import pau
 import random
 import ShapekeyStore
 import time
@@ -20,7 +20,7 @@ class ApplyJaw:
   and send the modified message to pau2motors.
   """
 
-  rms_params = {"scale": 1.0/4000, "min": 0.0, "max": 1.0}
+  rms_params = {"scale": 1.0/5000, "min": 0.3, "max": 0.7}
 
   soundfile = None
 
@@ -50,9 +50,9 @@ class ApplyJaw:
       self.pub.publish(msg)
 
   def __init__(self):
-    self.facepau = fsMsgTrackingState()
-    rospy.Subscriber("speechtest_face_in", fsMsgTrackingState, self.handle_face_in)
-    self.pub = rospy.Publisher("cmd_face_pau", fsMsgTrackingState, queue_size=10)
+    self.facepau = pau
+    rospy.Subscriber("speechtest_face_in", pau, self.handle_face_in)
+    self.pub = rospy.Publisher("cmd_face_pau", pau, queue_size=10)
 
 class SpeechTest:
 
